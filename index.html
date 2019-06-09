@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>June 2019 Roguelike</title>
+		<style>
+			canvas {
+				border: 1px solid black;
+				display: inline;
+			}
+		</style>
+	</head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<body onload="setupRoom(640, 640, 0, 0)">
+		<canvas id="gameCanvas" width="0" height="0"></canvas>
+	</body>
+	<script>
+		var gameCanvas = document.getElementById("gameCanvas");
+		var ctx = gameCanvas.getContext("2d");
+		var spaceSize = 64;
+		var player;
+		
+		
+		function setupRoom(roomWidth, roomHeight,
+			playerXPos, playerYPos)
+		{
+			gameCanvas.width = roomWidth;
+			gameCanvas.height = roomHeight;
+			player = {
+				xPos: playerXPos,
+				yPos: playerYPos
+			};
+			drawCanvas();
+		}
+		function playerTurn()
+		{
+
+		}
+		function enemyTurn()
+		{
+		
+		}
+		function drawCanvas()
+		{
+			drawBackground();
+			drawPlayer();
+			drawEnemies();
+		}
+		function drawBackground()
+		{
+			for (i = 0; i < gameCanvas.width; i += spaceSize)
+			{
+				ctx.moveTo(0, i);
+				ctx.lineTo(gameCanvas.width, i);
+				ctx.stroke();
+			}
+			for (i = 0; i < gameCanvas.height; i += spaceSize)
+			{
+				ctx.moveTo(i, 0);
+				ctx.lineTo(i, gameCanvas.width);
+				ctx.stroke();
+			} 
+		}
+		
+		function drawPlayer()
+		{
+			ctx.font = spaceSize+"px Arial";
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
+			
+			ctx.fillText(String.fromCodePoint(0x1F604), 
+				player.xPos + spaceSize/2, 
+				player.yPos + spaceSize/2);
+		}
+		
+		function drawEnemies()
+		{
+		
+		}
+	</script>
+</html>
