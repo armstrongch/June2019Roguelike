@@ -19,6 +19,8 @@
 		var ctx = gameCanvas.getContext("2d");
 		var spaceSize = 64;
 		var player;
+		//Emoji Source
+		//http://www.isthisthingon.org/unicode/index.phtml?page=1F&subpage=6&hilite=1F604
 		
 		
 		function setupRoom(roomWidth, roomHeight,
@@ -64,7 +66,7 @@
 		
 		function drawPlayer()
 		{
-			ctx.font = spaceSize+"px Arial";
+			ctx.font = spaceSize*0.7+"px Arial";
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
 			
