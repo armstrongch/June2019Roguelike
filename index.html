@@ -189,7 +189,6 @@
 			if (player.canMoveUp)
 			{
 				player.yPos -= spaceSize;
-				drawCanvas();
 				var playerTurn = false;
 				enemyTurn();
 			}
@@ -200,7 +199,6 @@
 			if (player.canMoveDown)
 			{
 				player.yPos += spaceSize;
-				drawCanvas();
 				var playerTurn = false;
 				enemyTurn();
 			}
@@ -211,7 +209,6 @@
 			if (player.canMoveLeft)
 			{
 				player.xPos -= spaceSize;
-				drawCanvas();
 				var playerTurn = false;
 				enemyTurn();
 			}
@@ -222,7 +219,6 @@
 			if (player.canMoveRight)
 			{
 				player.xPos += spaceSize;
-				drawCanvas();
 				var playerTurn = false;
 				enemyTurn();
 			}
