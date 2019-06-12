@@ -36,44 +36,38 @@
 		}
 		var roomObjects =[];
 		
-		function checkPlayerMovement()
+		function checkPlayerMovement(obj)
 		{
 			player.canMoveUp = true;
 			player.canMoveDown = true;
 			player.canMoveLeft = true;
 			player.canMoveRight = true;
 			
-			var obj;
-			for (i = roomObjects.length - 1; i >= 0; i--)
+			if (obj.stopsPlayerMovement)
 			{
-				obj = roomObjects[i];
-				if (obj.stopsPlayerMovement)
+				if (obj.xPos == player.xPos)
 				{
-					if (obj.xPos == player.xPos)
+					if (obj.yPos == player.yPos + spaceSize)
 					{
-						if (obj.yPos == player.yPos + spaceSize)
-						{
-							player.canMoveDown = false;
-						}
-						else if (obj.yPos == player.yPos - spaceSize)
-						{
-							player.canMoveUp = false;
-						}
+						player.canMoveDown = false;
 					}
-					else if (obj.yPos == player.yPos)
+					else if (obj.yPos == player.yPos - spaceSize)
 					{
-						if (obj.xPos == player.xPos + spaceSize)
-						{
-							player.canMoveRight = false;
-						}
-						else if (obj.xPos == player.xPos - spaceSize)
-						{
-							player.canMoveLeft = false;
-						}
+						player.canMoveUp = false;
+					}
+				}
+				else if (obj.yPos == player.yPos)
+				{
+					if (obj.xPos == player.xPos + spaceSize)
+					{
+						player.canMoveRight = false;
+					}
+					else if (obj.xPos == player.xPos - spaceSize)
+					{
+						player.canMoveLeft = false;
 					}
 				}
 			}
-			playerTurn = true;
 		}
 		
 		function setupRoom(roomWidth, roomHeight)
@@ -122,7 +116,6 @@
 			};
 			
 			drawCanvas();
-			checkPlayerMovement();
 		}
 		
 		function handleKeyUp(e)
@@ -261,6 +254,8 @@
 			ctx.fillText(String.fromCodePoint(0x1F604), 
 				player.xPos + spaceSize/2, 
 				player.yPos + spaceSize/2);
+			
+			playerTurn = true;
 		}
 		
 		function drawRoomObjects()
@@ -284,6 +279,7 @@
 				ctx.fillText(objCode, 
 				obj.xPos + spaceSize/2, 
 				obj.yPos + spaceSize/2);
+				checkPlayerMovement(obj);
 			}
 		}
 		
@@ -291,7 +287,6 @@
 		{
 			//move Enemies
 			drawCanvas();
-			checkPlayerMovement();
 		}
 	</script>
 </html>
