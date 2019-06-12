@@ -38,11 +38,6 @@
 		
 		function checkPlayerMovement(obj)
 		{
-			player.canMoveUp = true;
-			player.canMoveDown = true;
-			player.canMoveLeft = true;
-			player.canMoveRight = true;
-			
 			if (obj.stopsPlayerMovement)
 			{
 				if (obj.xPos == player.xPos)
@@ -260,6 +255,11 @@
 		
 		function drawRoomObjects()
 		{
+			player.canMoveUp = true;
+			player.canMoveDown = true;
+			player.canMoveLeft = true;
+			player.canMoveRight = true;
+			
 			ctx.font = spaceSize*0.7+"px Arial";
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
