@@ -87,8 +87,8 @@
 			switch(roomNum)
 			{
 				case 1:
-					playerXPos = 1*spaceSize;
-					playerYPos = 1*spaceSize;
+					playerXPos = 7*spaceSize;
+					playerYPos = 7*spaceSize;
 					for (i = 0; i < gameCanvas.width; i += spaceSize)
 					{
 						roomObjects.push(new roomObject(i, 0, "tree", true));
@@ -98,6 +98,16 @@
 					{
 						roomObjects.push(new roomObject(0, i, "tree", true));
 						roomObjects.push(new roomObject(gameCanvas.width-spaceSize, i, "tree", true));
+					}
+					for (i = spaceSize; i < gameCanvas.width - spaceSize; i += spaceSize)
+					{
+						roomObjects.push(new roomObject(i, spaceSize, "grass", false));
+						roomObjects.push(new roomObject(i, gameCanvas.height-(spaceSize*2), "grass", false));
+					}
+					for (i = (spaceSize*2); i < gameCanvas.height - (spaceSize*2); i += spaceSize)
+					{
+						roomObjects.push(new roomObject(spaceSize, i, "grass", false));
+						roomObjects.push(new roomObject(gameCanvas.width-(spaceSize*2), i, "grass", false));
 					}
 					break;
 			}
@@ -227,8 +237,8 @@
 		{
 			ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
 			drawBackground();
-			drawPlayer();
 			drawRoomObjects();
+			drawPlayer();
 		}
 		function drawBackground()
 		{
@@ -270,6 +280,9 @@
 				switch (obj.name) {
 					case "tree":
 						objCode = String.fromCodePoint(0x1F333);
+						break;
+					case "grass":
+						objCode = String.fromCodePoint(0x1F33F);
 						break;
 				}
 				ctx.fillText(objCode, 
