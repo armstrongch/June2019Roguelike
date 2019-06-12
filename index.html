@@ -11,7 +11,7 @@
 		</style>
 	</head>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<body onload="setupRoom(640, 640)">
+	<body onload="setupRoom(720, 720)">
 		<canvas id="gameCanvas" width="0" height="0"></canvas>
 	</body>
 	<script>
@@ -19,21 +19,62 @@
 		var ctx = gameCanvas.getContext("2d");
 		$("#gameCanvas").mouseup(function(e){handleMouseUp(e);});
 		$(document).keydown(function(e){handleKeyUp(e)});
-		var spaceSize = 64;
-		var playerTurn = true;
+		var spaceSize = 48;
+		var playerTurn = false;
 		var player;
 		var roomNum = 1;
 		//Emoji Source
 		//https://unicode.org/emoji/charts/full-emoji-list.html
 		
 		
-		function roomObject (xPos, yPos, name)
+		function roomObject (xPos, yPos, name, stopsPlayerMovement)
 		{
 			this.xPos = xPos;
 			this.yPos = yPos;
 			this.name = name;
+			this.stopsPlayerMovement = stopsPlayerMovement;
 		}
 		var roomObjects =[];
+		
+		function checkPlayerMovement()
+		{
+			player.canMoveUp = true;
+			player.canMoveDown = true;
+			player.canMoveLeft = true;
+			player.canMoveRight = true;
+			
+			var obj;
+			for (i = roomObjects.length - 1; i >= 0; i--)
+			{
+				obj = roomObjects[i];
+				if (obj.stopsPlayerMovement)
+				{
+					if (obj.xPos == player.xPos)
+					{
+						if (obj.yPos == player.yPos + spaceSize)
+						{
+							player.canMoveDown = false;
+						}
+						else if (obj.yPos == player.yPos - spaceSize)
+						{
+							player.canMoveUp = false;
+						}
+					}
+					else if (obj.yPos == player.yPos)
+					{
+						if (obj.xPos == player.xPos + spaceSize)
+						{
+							player.canMoveRight = false;
+						}
+						else if (obj.xPos == player.xPos - spaceSize)
+						{
+							player.canMoveLeft = false;
+						}
+					}
+				}
+			}
+			playerTurn = true;
+		}
 		
 		function setupRoom(roomWidth, roomHeight)
 		{
@@ -50,25 +91,28 @@
 					playerYPos = 1*spaceSize;
 					for (i = 0; i < gameCanvas.width; i += spaceSize)
 					{
-						roomObjects.push(new roomObject(i, 0, "tree"));
-						roomObjects.push(new roomObject(i, gameCanvas.height-spaceSize, "tree"));
+						roomObjects.push(new roomObject(i, 0, "tree", true));
+						roomObjects.push(new roomObject(i, gameCanvas.height-spaceSize, "tree", true));
 					}
 					for (i = spaceSize; i < gameCanvas.height - spaceSize; i += spaceSize)
 					{
-						roomObjects.push(new roomObject(0, i, "tree"));
-						roomObjects.push(new roomObject(gameCanvas.width-spaceSize, i, "tree"));
+						roomObjects.push(new roomObject(0, i, "tree", true));
+						roomObjects.push(new roomObject(gameCanvas.width-spaceSize, i, "tree", true));
 					}
 					break;
 			}
 			
 			player = {
 				xPos: playerXPos,
-				yPos: playerYPos
+				yPos: playerYPos,
+				canMoveUp: true,
+				canMoveDown: true,
+				canMoveLeft: true,
+				canMoveRight: true
 			};
 			
-			
 			drawCanvas();
-			
+			checkPlayerMovement();
 		}
 		
 		function handleKeyUp(e)
@@ -132,34 +176,46 @@
 		
 		function clickUp()
 		{
-			player.yPos -= spaceSize;
-			drawCanvas();
-			var playerTurn = false;
-			enemyTurn();
+			if (player.canMoveUp)
+			{
+				player.yPos -= spaceSize;
+				drawCanvas();
+				var playerTurn = false;
+				enemyTurn();
+			}
 		}
 		
 		function clickDown()
 		{
-			player.yPos += spaceSize;
-			drawCanvas();
-			var playerTurn = false;
-			enemyTurn();
+			if (player.canMoveDown)
+			{
+				player.yPos += spaceSize;
+				drawCanvas();
+				var playerTurn = false;
+				enemyTurn();
+			}
 		}
 		
 		function clickLeft()
 		{
-			player.xPos -= spaceSize;
-			drawCanvas();
-			var playerTurn = false;
-			enemyTurn();
+			if (player.canMoveLeft)
+			{
+				player.xPos -= spaceSize;
+				drawCanvas();
+				var playerTurn = false;
+				enemyTurn();
+			}
 		}
 		
 		function clickRight()
 		{
-			player.xPos += spaceSize;
-			drawCanvas();
-			var playerTurn = false;
-			enemyTurn();
+			if (player.canMoveRight)
+			{
+				player.xPos += spaceSize;
+				drawCanvas();
+				var playerTurn = false;
+				enemyTurn();
+			}
 		}
 		
 		function pointDistance(x1, y1, x2, y2)
@@ -224,8 +280,9 @@
 		
 		function enemyTurn()
 		{
+			//move Enemies
 			drawCanvas();
-			var playerTurn = true;
+			checkPlayerMovement();
 		}
 	</script>
 </html>
