@@ -72,7 +72,7 @@
 		
 		var monsterDesc =
 		{
-			"goblin": "a run-of-the-mill spooker"
+			"Goblin": "a run-of-the-mill spooker"
 		};
 		
 		function roomObject (xPos, yPos, name, stopsPlayerMovement)
@@ -155,7 +155,8 @@
 				canMoveRight: true,
 				health: 20,
 				weapon: "Cattle Prod",
-				armor: "Denim Overalls"
+				armor: "Denim Overalls",
+				dead: false
 			};
 			
 			drawCanvas();
@@ -327,16 +328,23 @@
 			{
 				var obj = roomObjects[i];
 				var objCode;
-				switch (obj.name) {
+				if (obj.dead)
+				{
+					objCode = String.fromCodePoint(0x2620);
+				}
+				else
+				{
+					switch (obj.name) {
 					case "tree":
 						objCode = String.fromCodePoint(0x1F333);
 						break;
 					case "grass":
 						objCode = String.fromCodePoint(0x1F33F);
 						break;
-					case "goblin":
+					case "Goblin":
 						objCode = String.fromCodePoint(0x1F47A);
 						break;
+					}
 				}
 				ctx.fillText(objCode, 
 				obj.xPos + spaceSize/2, 
@@ -347,12 +355,43 @@
 		
 		function enemyTurn()
 		{
-			//move Enemies
+			for (i = roomObjects.length - 1; i >= 0; i--)
+			{
+				var obj = roomObjects[i];
+				if ((obj.isMonster) && (!obj.dead))
+				{
+					if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos))
+					{
+						fightMonster(obj);
+					}
+					else if ((obj.xPos == player.xPos)|| (Math.random() > 0.5))
+					{
+						obj.yPos += (obj.yPos > player.yPos) ? -spaceSize : spaceSize;
+					}
+					else
+					{
+						obj.xPos += (obj.xPos > player.xPos) ? -spaceSize : spaceSize;
+					}
+					//Check collision before moving AND after moving
+					if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos) && (!obj.dead))
+					{
+						fightMonster(obj);
+					}
+				}
+			}
 			if (numberOfMonsters == 0)
 			{
 				generateMonsters();
 			}
 			drawCanvas();
+		}
+		
+		function fightMonster(obj)
+		{
+			player.health -= obj.monsterLevel;
+			showMessage(obj.name + " deals " + obj.monsterLevel + " damage.");
+			obj.dead = true;
+			showMessage(obj.name + " is defeated.");
 		}
 		
 		function generateMonsters()
@@ -393,7 +432,7 @@
 			}
 			switch (monsterLevel) {
 				case 1:
-					monster.name = "goblin";
+					monster.name = "Goblin";
 					monster.monsterLevel = monsterLevel;
 					break;
 			}
