@@ -50,7 +50,8 @@
 		var spaceSize = 48;
 		var playerTurn = false;
 		var player;
-		var roomNum = 1;
+		var monsterWaveNumber = 0;
+		var numberOfMonsters = 0;
 		//Emoji Source
 		//https://unicode.org/emoji/charts/full-emoji-list.html
 		
@@ -110,32 +111,27 @@
 			var playerXPos = 0;
 			var playerYPos = 0;
 			
-			switch(roomNum)
+			playerXPos = 7*spaceSize;
+			playerYPos = 7*spaceSize;
+			for (i = 0; i < gameCanvas.width; i += spaceSize)
 			{
-				case 1:
-					playerXPos = 7*spaceSize;
-					playerYPos = 7*spaceSize;
-					for (i = 0; i < gameCanvas.width; i += spaceSize)
-					{
-						roomObjects.push(new roomObject(i, 0, "tree", true));
-						roomObjects.push(new roomObject(i, gameCanvas.height-spaceSize, "tree", true));
-					}
-					for (i = spaceSize; i < gameCanvas.height - spaceSize; i += spaceSize)
-					{
-						roomObjects.push(new roomObject(0, i, "tree", true));
-						roomObjects.push(new roomObject(gameCanvas.width-spaceSize, i, "tree", true));
-					}
-					for (i = spaceSize; i < gameCanvas.width - spaceSize; i += spaceSize)
-					{
-						roomObjects.push(new roomObject(i, spaceSize, "grass", false));
-						roomObjects.push(new roomObject(i, gameCanvas.height-(spaceSize*2), "grass", false));
-					}
-					for (i = (spaceSize*2); i < gameCanvas.height - (spaceSize*2); i += spaceSize)
-					{
-						roomObjects.push(new roomObject(spaceSize, i, "grass", false));
-						roomObjects.push(new roomObject(gameCanvas.width-(spaceSize*2), i, "grass", false));
-					}
-					break;
+				roomObjects.push(new roomObject(i, 0, "tree", true));
+				roomObjects.push(new roomObject(i, gameCanvas.height-spaceSize, "tree", true));
+			}
+			for (i = spaceSize; i < gameCanvas.height - spaceSize; i += spaceSize)
+			{
+				roomObjects.push(new roomObject(0, i, "tree", true));
+				roomObjects.push(new roomObject(gameCanvas.width-spaceSize, i, "tree", true));
+			}
+			for (i = spaceSize; i < gameCanvas.width - spaceSize; i += spaceSize)
+			{
+				roomObjects.push(new roomObject(i, spaceSize, "grass", false));
+				roomObjects.push(new roomObject(i, gameCanvas.height-(spaceSize*2), "grass", false));
+			}
+			for (i = (spaceSize*2); i < gameCanvas.height - (spaceSize*2); i += spaceSize)
+			{
+				roomObjects.push(new roomObject(spaceSize, i, "grass", false));
+				roomObjects.push(new roomObject(gameCanvas.width-(spaceSize*2), i, "grass", false));
 			}
 			
 			player = {
