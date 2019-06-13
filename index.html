@@ -8,11 +8,39 @@
 				border: 1px solid black;
 				display: inline;
 			}
+			.infoBarTD {
+				border: 1px solid black;
+				padding: 5px;
+				text-align: center;
+				max-width: 30%;
+			}
 		</style>
 	</head>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<body onload="setupRoom(720, 720)">
-		<canvas id="gameCanvas" width="0" height="0"></canvas>
+		<table>
+			<tr>
+				<td valign="top" class="infoBarTD">
+					<h3>
+						Health:<br/>
+						<span id="playerHealthSpan"></span> / 20<br/>
+					</h3>
+					<h3>
+						Weapon:<br/>
+						<span id="playerWeaponSpan"></span><br/>
+						<i><span id="playerWeaponDesc"></span></i><br/>
+					</h3>
+					<h3>
+						Armor:<br/>
+						<span id="playerArmorSpan"></span><br/>
+						<i><span id="playerArmorDesc"></span></i><br/>
+					</h3>
+				</td>
+				<td>
+					<canvas id="gameCanvas" width="0" height="0"></canvas>
+				</td>
+			</tr>
+		</table>
 	</body>
 	<script>
 		var gameCanvas = $("#gameCanvas")[0];
@@ -26,6 +54,15 @@
 		//Emoji Source
 		//https://unicode.org/emoji/charts/full-emoji-list.html
 		
+		var weaponDescs =
+		{
+			"Cattle Prod": "standard melee weapon"
+		};
+		
+		var armorDescs =
+		{
+			"Denim Overalls": "standard armor"
+		};
 		
 		function roomObject (xPos, yPos, name, stopsPlayerMovement)
 		{
@@ -107,7 +144,10 @@
 				canMoveUp: true,
 				canMoveDown: true,
 				canMoveLeft: true,
-				canMoveRight: true
+				canMoveRight: true,
+				health: 20,
+				weapon: "Cattle Prod",
+				armor: "Denim Overalls"
 			};
 			
 			drawCanvas();
@@ -223,7 +263,18 @@
 			drawBackground();
 			drawRoomObjects();
 			drawPlayer();
+			drawSidebarInfo();
 		}
+		
+		function drawSidebarInfo()
+		{
+			$('#playerHealthSpan').html(player.health);
+			$('#playerWeaponSpan').html(player.weapon);
+			$('#playerWeaponDesc').html(weaponDescs[player.weapon]);
+			$('#playerArmorSpan').html(player.armor);
+			$('#playerArmorDesc').html(armorDescs[player.armor]);
+		}
+		
 		function drawBackground()
 		{
 			for (i = 0; i < gameCanvas.width; i += spaceSize)
@@ -246,7 +297,7 @@
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
 			
-			ctx.fillText(String.fromCodePoint(0x1F604), 
+			ctx.fillText(String.fromCodePoint(0x1F920), 
 				player.xPos + spaceSize/2, 
 				player.yPos + spaceSize/2);
 			
