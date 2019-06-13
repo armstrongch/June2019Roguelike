@@ -40,6 +40,11 @@
 					<canvas id="gameCanvas" width="0" height="0"></canvas>
 				</td>
 			</tr>
+			<tr>
+				<td colspan="2">
+					<h4 id="colorCommentary"></h4>
+				</td>
+			</tr>
 		</table>
 	</body>
 	<script>
@@ -55,14 +60,19 @@
 		//Emoji Source
 		//https://unicode.org/emoji/charts/full-emoji-list.html
 		
-		var weaponDescs =
+		var weaponDesc =
 		{
 			"Cattle Prod": "standard melee weapon"
 		};
 		
-		var armorDescs =
+		var armorDesc =
 		{
 			"Denim Overalls": "standard armor"
+		};
+		
+		var monsterDesc =
+		{
+			"goblin": "a run-of-the-mill spooker"
 		};
 		
 		function roomObject (xPos, yPos, name, stopsPlayerMovement)
@@ -71,6 +81,8 @@
 			this.yPos = yPos;
 			this.name = name;
 			this.stopsPlayerMovement = stopsPlayerMovement;
+			this.isMonster = false;
+			this.monsterLevel = 0;
 		}
 		var roomObjects =[];
 		
@@ -266,9 +278,9 @@
 		{
 			$('#playerHealthSpan').html(player.health);
 			$('#playerWeaponSpan').html(player.weapon);
-			$('#playerWeaponDesc').html(weaponDescs[player.weapon]);
+			$('#playerWeaponDesc').html(weaponDesc[player.weapon]);
 			$('#playerArmorSpan').html(player.armor);
-			$('#playerArmorDesc').html(armorDescs[player.armor]);
+			$('#playerArmorDesc').html(armorDesc[player.armor]);
 		}
 		
 		function drawBackground()
@@ -322,6 +334,9 @@
 					case "grass":
 						objCode = String.fromCodePoint(0x1F33F);
 						break;
+					case "goblin":
+						objCode = String.fromCodePoint(0x1F47A);
+						break;
 				}
 				ctx.fillText(objCode, 
 				obj.xPos + spaceSize/2, 
@@ -333,7 +348,73 @@
 		function enemyTurn()
 		{
 			//move Enemies
+			if (numberOfMonsters == 0)
+			{
+				generateMonsters();
+			}
 			drawCanvas();
+		}
+		
+		function generateMonsters()
+		{
+			monsterWaveNumber++;
+			var monstersToGenerate = monsterWaveNumber;
+			while (monstersToGenerate > 0)
+			{
+				monsterLevel = Math.ceil(monstersToGenerate*Math.random());
+				generateMonster(monsterLevel);
+				monstersToGenerate -= monsterLevel;
+				numberOfMonsters++;
+			}
+		}
+		
+		function generateMonster(monsterLevel)
+		{
+			var monster = new roomObject(0, 0, "none", false);
+			var roomSide = Math.floor(4*Math.random());
+			switch(roomSide)
+			{
+				case 0:
+					monster.yPos = spaceSize;
+					monster.xPos = spaceSize + Math.floor((Math.random() * (gameCanvas.width - (spaceSize*2))) / spaceSize) * spaceSize;
+					break;
+				case 1:
+					monster.yPos = gameCanvas.height - spaceSize*2;
+					monster.xPos = spaceSize + Math.floor((Math.random() * (gameCanvas.width - spaceSize*2)) / spaceSize) * spaceSize;
+					break;
+				case 2:
+					monster.xPos = spaceSize;
+					monster.yPos = spaceSize + Math.floor((Math.random() * (gameCanvas.height - (spaceSize*2))) / spaceSize) * spaceSize;
+					break;
+				case 3:
+					monster.xPos = gameCanvas.height - spaceSize*2;;
+					monster.yPos = spaceSize + Math.floor((Math.random() * (gameCanvas.height - (spaceSize*2))) / spaceSize) * spaceSize;
+					break;
+			}
+			switch (monsterLevel) {
+				case 1:
+					monster.name = "goblin";
+					monster.monsterLevel = monsterLevel;
+					break;
+			}
+			monster.isMonster = true;
+			roomObjects.push(monster);
+			showMessage("A <button onClick=\"monsterInfo('" + monster.name + "', '" + monster.monsterLevel + "')\"><strong>" + monster.name + "</strong></button> emerges in the tall grass!");
+		}
+		
+		function monsterInfo(monsterName, monsterLevel)
+		{
+			var text = "Level " + monsterLevel + ", " + monsterDesc[monsterName];
+			alert(text);
+		}
+		
+		function showMessage(text)
+		{
+			$('#colorCommentary').html(
+				text
+				+ "<br/>"
+				+ $('#colorCommentary').html()
+			);
 		}
 	</script>
 </html>
