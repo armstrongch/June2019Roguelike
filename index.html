@@ -72,11 +72,42 @@
 		function createLoot(monsterName)
 		{
 			var lootIndex = Math.floor(Math.random()*lootList.length);
-			var name = lootList[lootIndex][0];
+			var lootName = lootList[lootIndex][0];
 			var type = lootList[lootIndex][1];
 
-			var message = monsterName + " dropped some loot: " + name + ", (" + type + ").";
-					showMessage(message);
+			var message = monsterName 
+				+ " dropped some loot: " + lootName + ".";
+			showMessage(message);
+			switch(type)
+			{
+				case "weapon":
+					message = "Replace " + player.weapon 
+						+ " with " + lootName + " (" + weaponDesc[lootName] + ")?";
+					if (confirm(message))
+					{
+						player.weapon = lootName;
+					}
+					break;
+				case "armor":
+					message = "Replace " + player.armor 
+						+ " with " + lootName + " (" + armorDesc[lootName] + ")?";
+					if (confirm(message))
+					{
+						player.armor = lootName;
+					}
+					break;
+				case "ring":
+					message = "Put on " + lootName + " (" + ringDesc[lootName] + ")?";
+					if (confirm(message))
+					{
+						player.rings += 
+						{
+							name: lootName,
+							charges: 5
+						};
+					}
+					break;
+			}
 		}
 		
 		var weaponDesc =
