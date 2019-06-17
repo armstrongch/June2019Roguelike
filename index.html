@@ -61,6 +61,7 @@
 		var player;
 		var monsterWaveNumber = 0;
 		var numberOfMonsters = 0;
+		var pickLoot = false;
 		//Emoji Source
 		//https://unicode.org/emoji/charts/full-emoji-list.html
 		
@@ -69,6 +70,56 @@
 			"Goblin": "a run-of-the-mill spooker"
 		};
 		
+		function lootInfo(lootName, lootType)
+		{
+			var text = "";
+			if (pickLoot)
+			{
+				switch(lootType)
+				{
+					case "weapon":
+						text = "Replace " + player.weapon + " with " + lootName + " (" + weaponDesc[lootName] + ")?";
+						if (confirm(text))
+						{
+							player.weapon = lootName;
+						}
+						break;
+					case "armor":
+						text = "Replace " + player.armor + " with " + lootName + " (" + armorDesc[lootName] + ")?";
+						if (confirm(text))
+						{
+							player.armor = lootName;
+						}
+						break;
+					case "ring":
+						text = "Put on " + lootName + " (" + ringDesc[lootName] + ")?";
+						if (confirm(text))
+						{
+							player.rings[player.rings.length] = {name: lootName,charges: 5};
+						}
+						break;
+				}
+				pickLoot = false;
+				drawCanvas();
+			}
+			else
+			{
+				switch(lootType)
+				{
+					case "weapon":
+						text = lootName + ": " + weaponDesc[lootName];
+						break;
+					case "armor":
+						text = lootName + ": " + armorDesc[lootName];
+						break;
+					case "ring":
+						text = lootName + ": " + ringDesc[lootName];
+						break;
+				}
+				alert(text);
+			}	
+		}
+		
 		function createLoot(monsterName)
 		{
 			var lootIndex = Math.floor(Math.random()*lootList.length);
@@ -76,38 +127,9 @@
 			var type = lootList[lootIndex][1];
 
 			var message = monsterName 
-				+ " dropped some loot: " + lootName + ".";
+				+ " dropped some loot: <button onClick=\"lootInfo('" + lootName + "', '" + type + "')\"><strong>" + lootName + "</strong></button>";
 			showMessage(message);
-			switch(type)
-			{
-				case "weapon":
-					message = "Replace " + player.weapon 
-						+ " with " + lootName + " (" + weaponDesc[lootName] + ")?";
-					if (confirm(message))
-					{
-						player.weapon = lootName;
-					}
-					break;
-				case "armor":
-					message = "Replace " + player.armor 
-						+ " with " + lootName + " (" + armorDesc[lootName] + ")?";
-					if (confirm(message))
-					{
-						player.armor = lootName;
-					}
-					break;
-				case "ring":
-					message = "Put on " + lootName + " (" + ringDesc[lootName] + ")?";
-					if (confirm(message))
-					{
-						player.rings += 
-						{
-							name: lootName,
-							charges: 5
-						};
-					}
-					break;
-			}
+			pickLoot = true;
 		}
 		
 		var weaponDesc =
@@ -275,7 +297,7 @@
 			if (player.canMoveUp)
 			{
 				player.yPos -= spaceSize;
-				var playerTurn = false;
+				playerTurn = false;
 				enemyTurn();
 			}
 		}
@@ -285,7 +307,7 @@
 			if (player.canMoveDown)
 			{
 				player.yPos += spaceSize;
-				var playerTurn = false;
+				playerTurn = false;
 				enemyTurn();
 			}
 		}
@@ -295,7 +317,7 @@
 			if (player.canMoveLeft)
 			{
 				player.xPos -= spaceSize;
-				var playerTurn = false;
+				playerTurn = false;
 				enemyTurn();
 			}
 		}
@@ -305,7 +327,7 @@
 			if (player.canMoveRight)
 			{
 				player.xPos += spaceSize;
-				var playerTurn = false;
+				playerTurn = false;
 				enemyTurn();
 			}
 		}
@@ -331,12 +353,13 @@
 			$('#playerWeaponDesc').html(weaponDesc[player.weapon]);
 			$('#playerArmorSpan').html(player.armor);
 			$('#playerArmorDesc').html(armorDesc[player.armor]);
-			var ringHtml = "Rings:</br>";
+			var ringHtml = "";
 			for (i = 0; i < player.rings.length; i++)
 			{
 				var ring = player.rings[i];
-				ringHtml += ring.name +"(" + ring.charges + "): <i>" + ringDesc[ring] + "</i><br/>";
+				ringHtml += ring.name +" (" + ring.charges + "):<br/><i>" + ringDesc[ring.name] + "</i><br/><br/>";
 			}
+			$('#playerRingSpan').html(ringHtml);
 		}
 		
 		function drawBackground()
@@ -365,7 +388,10 @@
 				player.xPos + spaceSize/2, 
 				player.yPos + spaceSize/2);
 			
-			playerTurn = true;
+			if (!pickLoot)
+			{
+				playerTurn = true;
+			}
 		}
 		
 		function drawRoomObjects()
@@ -414,13 +440,17 @@
 					{
 						fightMonster(obj, i);
 					}
-					else if ((obj.xPos == player.xPos)|| (Math.random() > 0.5))
+					else if ((obj.xPos == player.xPos))
 					{
 						obj.yPos += (obj.yPos > player.yPos) ? -spaceSize : spaceSize;
 					}
-					else
+					else if ((obj.yPos == player.yPos) || (Math.random() > 0.5))
 					{
 						obj.xPos += (obj.xPos > player.xPos) ? -spaceSize : spaceSize;
+					}
+					else
+					{
+						obj.yPos += (obj.yPos > player.yPos) ? -spaceSize : spaceSize;
 					}
 					//Check collision before moving AND after moving
 					if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos) && (!obj.dead))
