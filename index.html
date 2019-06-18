@@ -40,13 +40,17 @@
 						<span id="playerRingSpan"></span><br/>
 					</h3>
 				</td>
-				<td>
+				<td colspan="2">
 					<canvas id="gameCanvas" width="0" height="0"></canvas>
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2">
+				<td></td>
+				<td valign="top" >
 					<h4 id="colorCommentary"></h4>
+				</td>
+				<td valign="top">
+					<h4 style="color:red;" id="lootPickupText"></h4>
 				</td>
 			</tr>
 		</table>
@@ -65,9 +69,11 @@
 		//Emoji Source
 		//https://unicode.org/emoji/charts/full-emoji-list.html
 		
+		var numberOfMonsterTypes = 2;
 		var monsterDesc =
 		{
-			"Goblin": "a run-of-the-mill spooker"
+			"Goblin": "a run-of-the-mill spooker. Moves toward the player orthogonally one space at a time.",
+			"Zoombini": "moves toward the player orthogonally one space at a time. Every five rounds, the Zoombini's level is reduced by 1 due to decomposition."
 		};
 		
 		function lootInfo(lootName, lootType)
@@ -100,6 +106,7 @@
 						break;
 				}
 				pickLoot = false;
+				showLoot("");
 				drawCanvas();
 			}
 			else
@@ -128,7 +135,7 @@
 
 			var message = monsterName 
 				+ " dropped some loot: <button onClick=\"lootInfo('" + lootName + "', '" + type + "')\"><strong>" + lootName + "</strong></button>";
-			showMessage(message);
+			showLoot(message);
 			pickLoot = true;
 		}
 		
@@ -420,6 +427,9 @@
 				case "Goblin":
 					objCode = String.fromCodePoint(0x1F47A);
 					break;
+				case "Zoombini":
+					objCode = String.fromCodePoint(0x1F9DF);
+					break;
 				}
 				
 				ctx.fillText(objCode, 
@@ -436,11 +446,23 @@
 				var obj = roomObjects[i];
 				if ((obj.isMonster) && (!obj.dead))
 				{
+					//Before Moving
 					if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos))
 					{
 						fightMonster(obj, i);
 					}
-					else if ((obj.xPos == player.xPos))
+					if ((obj.name == "Zoombini") && (obj.monsterLevel > 0))
+					{
+						obj.countdown--;
+						if (obj.countdown == 0)
+						{
+							obj.countdown = 5;
+							obj.monsterLevel--;
+							showMessage("The Zoombini decomposes. Its level is reduced to " + obj.monsterLevel + ".");
+						}
+					}
+					//Moving
+					if ((obj.xPos == player.xPos))
 					{
 						obj.yPos += (obj.yPos > player.yPos) ? -spaceSize : spaceSize;
 					}
@@ -452,7 +474,7 @@
 					{
 						obj.yPos += (obj.yPos > player.yPos) ? -spaceSize : spaceSize;
 					}
-					//Check collision before moving AND after moving
+					//After Moving
 					if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos) && (!obj.dead))
 					{
 						fightMonster(obj, i);
@@ -482,6 +504,7 @@
 				alert("Game Over");
 				location.reload();
 			}
+			numberOfMonsters--;
 		}
 		
 		function generateMonsters()
@@ -491,6 +514,10 @@
 			while (monstersToGenerate > 0)
 			{
 				monsterLevel = Math.ceil(monstersToGenerate*Math.random());
+				if (monsterLevel > numberOfMonsterTypes)
+				{
+					monsterLevel = numberOfMonsterTypes;
+				}
 				generateMonster(monsterLevel);
 				monstersToGenerate -= monsterLevel;
 				numberOfMonsters++;
@@ -525,6 +552,11 @@
 					monster.name = "Goblin";
 					monster.monsterLevel = monsterLevel;
 					break;
+				case 2:
+					monster.name = "Zoombini";
+					monster.monsterLevel = monsterLevel;
+					monster.countdown = 5;
+					break;
 			}
 			monster.isMonster = true;
 			roomObjects.push(monster);
@@ -544,6 +576,11 @@
 				+ "<br/>"
 				+ $('#colorCommentary').html()
 			);
+		}
+		
+		function showLoot(text)
+		{
+			$('#lootPickupText').html(text);
 		}
 	</script>
 </html>
