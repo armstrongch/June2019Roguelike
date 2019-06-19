@@ -278,23 +278,28 @@
 				var canvasOffset = $("#gameCanvas").offset();
 				var offsetX = canvasOffset.left;
 				var offsetY = canvasOffset.top;
-				var spaceXPos = Math.floor(parseInt(e.clientX-offsetX)/spaceSize)*spaceSize;
-				var spaceYPos = Math.floor(parseInt(e.clientY-offsetY)/spaceSize)*spaceSize;
-				if ((spaceXPos == player.xPos) && (spaceYPos == player.yPos + spaceSize))
+				var mouseXPos = parseInt(e.clientX-offsetX);
+				var mouseYPos = parseInt(e.clientY-offsetY);
+				var playerXCenter = player.xPos + spaceSize/2;
+				var playerYCenter = player.yPos + spaceSize/2;
+				
+				var mouseDir = Math.round(Math.atan2(mouseYPos - playerYCenter, mouseXPos - playerXCenter) * 180 / Math.PI/45)*45;
+				
+				switch(mouseDir)
 				{
-					clickDown();
-				}
-				else if ((spaceXPos == player.xPos) && (spaceYPos == player.yPos - spaceSize))
-				{
-					clickUp();
-				}
-				else if ((spaceXPos == player.xPos + spaceSize) && (spaceYPos == player.yPos))
-				{
-					clickRight();
-				}
-				else if ((spaceXPos == player.xPos - spaceSize) && (spaceYPos == player.yPos))
-				{
-					clickLeft();
+					case 0:
+						clickRight();
+						break;
+					case -90:
+						clickUp();
+						break;
+					case 180:
+					case -180:
+						clickLeft();
+						break;
+					case 90:
+						clickDown();
+						break;
 				}
 			}
 		}
