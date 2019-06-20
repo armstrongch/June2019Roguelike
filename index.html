@@ -12,7 +12,15 @@
 				border: 1px solid black;
 				padding: 5px;
 				text-align: center;
-				max-width: 30%;
+				width: 30%;
+			}
+			.infoTextTD {
+				border: 1px solid black;
+				width: 35%;
+			}
+			.commentaryDiv {
+				height: 150px;
+				overflow: scroll;
 			}
 		</style>
 	</head>
@@ -20,7 +28,7 @@
 	<body onload="setupRoom(720, 720)">
 		<table>
 			<tr>
-				<td valign="top" class="infoBarTD">
+				<td valign="top" class="infoBarTD" rowspan="2">
 					<h3>
 						Health:<br/>
 						<span id="playerHealthSpan"></span> / 20<br/>
@@ -45,11 +53,12 @@
 				</td>
 			</tr>
 			<tr>
-				<td></td>
-				<td valign="top" >
-					<h4 id="colorCommentary"></h4>
+				<td valign="top" class="infoTextTD">
+					<div class="commentaryDiv">
+						<h4 id="colorCommentary"></h4>
+					</div>
 				</td>
-				<td valign="top">
+				<td valign="top" class="infoTextTD">
 					<h4 style="color:red;" id="lootPickupText"></h4>
 				</td>
 			</tr>
@@ -68,12 +77,13 @@
 		//Emoji Source
 		//https://unicode.org/emoji/charts/full-emoji-list.html
 		
-		var numberOfMonsterTypes = 2;
+		var numberOfMonsterTypes = 4;
 		var monsterDesc =
 		{
 			"Goblin": "a run-of-the-mill spooker. Moves toward the player orthogonally one space at a time.",
-			"Zoombini": "moves toward the player orthogonally one space at a time. Every five rounds, the Zoombini's level is reduced by 1 due to decomposition."
-			/*"Fiendish Rhinoceros": "moves toward the player orthogonally one space at a time. Will sometimes charge, dealing double damage."*/
+			"Zoombini": "moves toward the player orthogonally one space at a time. Every five rounds, the Zoombini's level is reduced by 1 due to decomposition.",
+			"Fiendish Rhinoceros": "moves toward the player orthogonally one space at a time. Will sometimes charge, dealing double damage.",
+			"Fiendish Spike Pig": "moves toward the player orthogonally one space at a time. Spikes deal 1 damage diagonally"
 		};
 		
 		function lootInfo(lootName, lootType)
@@ -134,7 +144,7 @@
 			var type = lootList[lootIndex][1];
 
 			var message = monsterName 
-				+ " dropped some loot: <button onClick=\"lootInfo('" + lootName + "', '" + type + "')\"><strong>" + lootName + "</strong></button>";
+				+ " dropped some loot: <button id=\"lootButton\" onClick=\"lootInfo('" + lootName + "', '" + type + "')\"><strong>" + lootName + "</strong></button>";
 			showLoot(message);
 			pickLoot = true;
 		}
@@ -252,23 +262,31 @@
 		
 		function handleKeyUp(e)
 		{
+			var k = e.keyCode;
 			if (playerTurn)
 			{
-				var k = e.keyCode;
 				switch (k) {
 					case 38: //up
+					case 87:
 						clickUp();
 						break;
 					case 40: //down
+					case 83:
 						clickDown();
 						break;	
 					case 37: //left
+					case 65:
 						clickLeft();
 						break;	
 					case 39: //right
+					case 68:
 						clickRight();
 						break;
 				}
+			}
+			else if ((pickLoot) && (k == 32))
+			{
+				$('#lootButton').click();
 			}
 		}
 		
@@ -357,6 +375,7 @@
 			drawRoomObjects();
 			drawPlayer();
 			drawSidebarInfo();
+			gameCanvas.focus();
 		}
 		
 		function drawSidebarInfo()
@@ -436,6 +455,12 @@
 				case "Zoombini":
 					objCode = String.fromCodePoint(0x1F9DF);
 					break;
+				case "Fiendish Rhinoceros":
+					objCode = String.fromCodePoint(0x1F98F);
+					break;
+				case "Fiendish Spike Pig":
+					objCode = String.fromCodePoint(0x1F994);
+					break;
 				}
 				
 				ctx.fillText(objCode, 
@@ -457,6 +482,35 @@
 					if (!obj.dead)
 					{
 						//Before Moving
+						if (obj.name == "Fiendish Rhinoceros") 
+						{
+							if ((obj.xPos == player.xPos) || (obj.yPos == player.yPos))
+							{
+								if (obj.state == "none")
+								{
+									showMessage("Fiendish Rhinoceros is preparing to charge.");
+									obj.state = "prep";
+								}
+								else if (obj.state == "prep")
+								{
+									showMessage("Fiendish Rhinoceros charges!");
+									obj.state = "charge";
+									obj.xPos = player.xPos;
+									obj.yPos = player.yPos;
+								}
+							}
+							else
+							{
+								obj.state = "none";
+							}
+						}
+						else if ((obj.name == "Fiendish Spike Pig") 
+							&& (Math.abs(player.xPos - obj.xPos) == spaceSize)
+							&& (Math.abs(player.yPos - obj.yPos) == spaceSize))
+						{
+							showMessage("Fiendish Spike Pig deals 1 spike damage!");
+							player.health--;
+						}
 						if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos))
 						{
 							fightMonster(obj, i);
@@ -471,8 +525,9 @@
 								showMessage("The Zoombini decomposes. Its level is reduced to " + obj.monsterLevel + ".");
 							}
 						}
+						
 						//Moving
-						if ((obj.xPos == player.xPos))
+						if (obj.xPos == player.xPos)
 						{
 							obj.yPos += (obj.yPos > player.yPos) ? -spaceSize : spaceSize;
 						}
@@ -484,6 +539,7 @@
 						{
 							obj.yPos += (obj.yPos > player.yPos) ? -spaceSize : spaceSize;
 						}
+						
 						//After Moving
 						if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos) && (!obj.dead))
 						{
@@ -502,11 +558,23 @@
 				generateMonsters();
 			}
 			drawCanvas();
+			if (player.health <= 0)
+			{
+				alert("Game Over");
+				location.reload();
+			}
 		}
 		
 		function fightMonster(obj, index)
 		{
 			var damage = obj.monsterLevel;
+			//Calculate Monster Effects
+			if ((obj.name == "Fiendish Rhinoceros") && (obj.state == "charge"))
+			{
+				damage = damage * 2;
+			}
+			
+			//Calculate Player Items
 			if ((player.armor == "Leather Armor") && (damage > 0))
 			{
 				damage--;	
@@ -542,15 +610,7 @@
 			obj.dead = true;
 			showMessage(obj.name + " is defeated.");
 			roomObjects.splice(index, 1);
-			if (player.health > 0)
-			{
-				createLoot(obj.name);
-			}
-			else
-			{
-				alert("Game Over");
-				location.reload();
-			}
+			createLoot(obj.name);
 		}
 		
 		function generateMonsters()
@@ -601,6 +661,15 @@
 					monster.name = "Zoombini";
 					monster.monsterLevel = monsterLevel;
 					monster.countdown = 5;
+					break;
+				case 3:
+					monster.name = "Fiendish Rhinoceros";
+					monster.monsterLevel = monsterLevel;
+					monster.state = "none";
+					break;
+				case 4:
+					monster.name = "Fiendish Spike Pig";
+					monster.monsterLevel = monsterLevel;
 					break;
 			}
 			monster.isMonster = true;
