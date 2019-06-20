@@ -395,19 +395,19 @@
 		}
 		
 		function drawBackground()
-		{
+		{	
 			for (i = 0; i < gameCanvas.width; i += spaceSize)
 			{
 				ctx.moveTo(0, i);
 				ctx.lineTo(gameCanvas.width, i);
-				ctx.stroke();
+				
 			}
 			for (i = 0; i < gameCanvas.height; i += spaceSize)
 			{
 				ctx.moveTo(i, 0);
 				ctx.lineTo(i, gameCanvas.width);
-				ctx.stroke();
-			} 
+			}
+			ctx.stroke();
 		}
 		
 		function drawPlayer()
