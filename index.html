@@ -64,7 +64,6 @@
 		var playerTurn = false;
 		var player;
 		var monsterWaveNumber = 0;
-		var numberOfMonsters = 0;
 		var pickLoot = false;
 		//Emoji Source
 		//https://unicode.org/emoji/charts/full-emoji-list.html
@@ -74,6 +73,7 @@
 		{
 			"Goblin": "a run-of-the-mill spooker. Moves toward the player orthogonally one space at a time.",
 			"Zoombini": "moves toward the player orthogonally one space at a time. Every five rounds, the Zoombini's level is reduced by 1 due to decomposition."
+			/*"Fiendish Rhinoceros": "moves toward the player orthogonally one space at a time. Will sometimes charge, dealing double damage."*/
 		};
 		
 		function lootInfo(lootName, lootType)
@@ -101,7 +101,7 @@
 						text = "Put on " + lootName + " (" + ringDesc[lootName] + ")?";
 						if (confirm(text))
 						{
-							player.rings[player.rings.length] = {name: lootName,charges: 5};
+							player.rings[player.rings.length] = {name: lootName,charges: 3};
 						}
 						break;
 				}
@@ -169,6 +169,7 @@
 			this.stopsPlayerMovement = stopsPlayerMovement;
 			this.isMonster = false;
 			this.monsterLevel = 0;
+			this.causeOfDeath = "Unknown";
 		}
 		var roomObjects =[];
 		
@@ -421,7 +422,7 @@
 			{
 				var obj = roomObjects[i];
 				var objCode;
-
+				
 				switch (obj.name) {
 				case "tree":
 					objCode = String.fromCodePoint(0x1F333);
@@ -446,43 +447,53 @@
 		
 		function enemyTurn()
 		{
+			var numberOfMonsters = 0;
 			for (i = roomObjects.length - 1; i >= 0; i--)
 			{
 				var obj = roomObjects[i];
-				if ((obj.isMonster) && (!obj.dead))
+				if (obj.isMonster)
 				{
-					//Before Moving
-					if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos))
+					numberOfMonsters++;
+					if (!obj.dead)
 					{
-						fightMonster(obj, i);
-					}
-					if ((obj.name == "Zoombini") && (obj.monsterLevel > 0))
-					{
-						obj.countdown--;
-						if (obj.countdown == 0)
+						//Before Moving
+						if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos))
 						{
-							obj.countdown = 5;
-							obj.monsterLevel--;
-							showMessage("The Zoombini decomposes. Its level is reduced to " + obj.monsterLevel + ".");
+							fightMonster(obj, i);
 						}
-					}
-					//Moving
-					if ((obj.xPos == player.xPos))
-					{
-						obj.yPos += (obj.yPos > player.yPos) ? -spaceSize : spaceSize;
-					}
-					else if ((obj.yPos == player.yPos) || (Math.random() > 0.5))
-					{
-						obj.xPos += (obj.xPos > player.xPos) ? -spaceSize : spaceSize;
+						if ((obj.name == "Zoombini") && (obj.monsterLevel > 0))
+						{
+							obj.countdown--;
+							if (obj.countdown == 0)
+							{
+								obj.countdown = 5;
+								obj.monsterLevel--;
+								showMessage("The Zoombini decomposes. Its level is reduced to " + obj.monsterLevel + ".");
+							}
+						}
+						//Moving
+						if ((obj.xPos == player.xPos))
+						{
+							obj.yPos += (obj.yPos > player.yPos) ? -spaceSize : spaceSize;
+						}
+						else if ((obj.yPos == player.yPos) || (Math.random() > 0.5))
+						{
+							obj.xPos += (obj.xPos > player.xPos) ? -spaceSize : spaceSize;
+						}
+						else
+						{
+							obj.yPos += (obj.yPos > player.yPos) ? -spaceSize : spaceSize;
+						}
+						//After Moving
+						if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos) && (!obj.dead))
+						{
+							fightMonster(obj, i);
+						}
 					}
 					else
 					{
-						obj.yPos += (obj.yPos > player.yPos) ? -spaceSize : spaceSize;
-					}
-					//After Moving
-					if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos) && (!obj.dead))
-					{
-						fightMonster(obj, i);
+						showMessage(obj.name + " is defeated. Cause of death: " + obj.causeOfDeath);
+						roomObjects.splice(i, 1);
 					}
 				}
 			}
@@ -495,8 +506,39 @@
 		
 		function fightMonster(obj, index)
 		{
-			player.health -= obj.monsterLevel;
-			showMessage(obj.name + " deals " + obj.monsterLevel + " damage.");
+			var damage = obj.monsterLevel;
+			if ((player.armor == "Leather Armor") && (damage > 0))
+			{
+				damage--;	
+			}
+			for (j = player.rings.length - 1; j >= 0; j--)
+			{
+				var ring = player.rings[j];
+				if ((ring.name == "Goblin-Squashing Ring") && (obj.name == "Goblin") && (damage > 0))
+				{
+					damage = 0;
+					ring.charges--;
+					if (ring.charges == 0)
+					{
+						showMessage(ring.name + " has been depleted.");
+						player.rings.splice(j, 1);
+					}
+				}
+			}
+			if (player.weapon == "Twin Sword")
+			{
+				for (k = 0; k < roomObjects.length; k++)
+				{
+					var o = roomObjects[k];
+					if ((o.isMonster) && (!o.dead) && (o.name == obj.name))
+					{
+						o.dead = true;
+						o.causeOfDeath = player.weapon;
+					}
+				}
+			}
+			player.health -= damage;
+			showMessage(obj.name + " deals " + damage + " damage.");
 			obj.dead = true;
 			showMessage(obj.name + " is defeated.");
 			roomObjects.splice(index, 1);
@@ -509,7 +551,6 @@
 				alert("Game Over");
 				location.reload();
 			}
-			numberOfMonsters--;
 		}
 		
 		function generateMonsters()
@@ -525,7 +566,6 @@
 				}
 				generateMonster(monsterLevel);
 				monstersToGenerate -= monsterLevel;
-				numberOfMonsters++;
 			}
 		}
 		
