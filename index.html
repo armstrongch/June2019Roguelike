@@ -77,6 +77,8 @@
 		//Emoji Source
 		//https://unicode.org/emoji/charts/full-emoji-list.html
 		
+		var emptySpace = [];
+		
 		var numberOfMonsterTypes = 4;
 		var monsterDesc =
 		{
@@ -180,6 +182,7 @@
 			this.isMonster = false;
 			this.monsterLevel = 0;
 			this.causeOfDeath = "Unknown";
+			this.distanceFromPlayer = pointDistance(0, 0, gameCanvas.width, gameCanvas.height);
 		}
 		var roomObjects =[];
 		
@@ -217,6 +220,16 @@
 			gameCanvas.width = roomWidth;
 			gameCanvas.height = roomHeight;
 			
+			for (i = 0; i < gameCanvas.width/spaceSize; i++)
+			{
+				var col = [];
+				for (j = 0; j < gameCanvas.height/spaceSize; j++)
+				{
+					col.push(true);
+				}
+				emptySpace.push(col);
+			}
+			
 			var playerXPos = 0;
 			var playerYPos = 0;
 			
@@ -225,12 +238,16 @@
 			for (i = 0; i < gameCanvas.width; i += spaceSize)
 			{
 				roomObjects.push(new roomObject(i, 0, "tree", true));
+				emptySpace[i/spaceSize][0] = false;
 				roomObjects.push(new roomObject(i, gameCanvas.height-spaceSize, "tree", true));
+				emptySpace[i/spaceSize][gameCanvas.height/spaceSize-1] = false;
 			}
 			for (i = spaceSize; i < gameCanvas.height - spaceSize; i += spaceSize)
 			{
 				roomObjects.push(new roomObject(0, i, "tree", true));
+				emptySpace[0][i/spaceSize] = false;
 				roomObjects.push(new roomObject(gameCanvas.width-spaceSize, i, "tree", true));
+				emptySpace[gameCanvas.width/spaceSize - 1][i/spaceSize] = false;
 			}
 			for (i = spaceSize; i < gameCanvas.width - spaceSize; i += spaceSize)
 			{
@@ -469,9 +486,31 @@
 			}
 		}
 		
+		//From Stack Overflow: https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
+		function dynamicSort(property) {
+			var sortOrder = 1;
+			
+			if(property[0] === "-") 
+			{
+				sortOrder = -1;
+				property = property.substr(1);
+			}
+			return function (a,b) 
+			{
+				/* next line works with strings and numbers, 
+				 * and you may want to customize it to your needs
+				 */
+				var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+				return result * sortOrder;
+			}
+		}
+		
 		function enemyTurn()
 		{
 			var numberOfMonsters = 0;
+			
+			roomObjects.sort(dynamicSort("-distanceFromPlayer"));
+			
 			for (i = roomObjects.length - 1; i >= 0; i--)
 			{
 				var obj = roomObjects[i];
@@ -526,8 +565,12 @@
 						}
 						
 						//Moving
-						if (obj.xPos == player.xPos)
+						if (obj.xPos == player.xPos) 
 						{
+							if (emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize])
+							{
+								//FINISH THIS
+							}
 							obj.yPos += (obj.yPos > player.yPos) ? -spaceSize : spaceSize;
 						}
 						else if ((obj.yPos == player.yPos) || (Math.random() > 0.5))
@@ -631,26 +674,33 @@
 		function generateMonster(monsterLevel)
 		{
 			var monster = new roomObject(0, 0, "none", false);
-			var roomSide = Math.floor(4*Math.random());
-			switch(roomSide)
-			{
-				case 0:
-					monster.yPos = spaceSize;
-					monster.xPos = spaceSize + Math.floor((Math.random() * (gameCanvas.width - (spaceSize*2))) / spaceSize) * spaceSize;
-					break;
-				case 1:
-					monster.yPos = gameCanvas.height - spaceSize*2;
-					monster.xPos = spaceSize + Math.floor((Math.random() * (gameCanvas.width - spaceSize*2)) / spaceSize) * spaceSize;
-					break;
-				case 2:
-					monster.xPos = spaceSize;
-					monster.yPos = spaceSize + Math.floor((Math.random() * (gameCanvas.height - (spaceSize*2))) / spaceSize) * spaceSize;
-					break;
-				case 3:
-					monster.xPos = gameCanvas.height - spaceSize*2;;
-					monster.yPos = spaceSize + Math.floor((Math.random() * (gameCanvas.height - (spaceSize*2))) / spaceSize) * spaceSize;
-					break;
-			}
+			do {
+				var roomSide = Math.floor(4*Math.random());
+				switch(roomSide)
+				{
+					case 0:
+						monster.yPos = spaceSize;
+						monster.xPos = spaceSize + Math.floor((Math.random() * (gameCanvas.width - (spaceSize*2))) / spaceSize) * spaceSize;
+						break;
+					case 1:
+						monster.yPos = gameCanvas.height - spaceSize*2;
+						monster.xPos = spaceSize + Math.floor((Math.random() * (gameCanvas.width - spaceSize*2)) / spaceSize) * spaceSize;
+						break;
+					case 2:
+						monster.xPos = spaceSize;
+						monster.yPos = spaceSize + Math.floor((Math.random() * (gameCanvas.height - (spaceSize*2))) / spaceSize) * spaceSize;
+						break;
+					case 3:
+						monster.xPos = gameCanvas.height - spaceSize*2;;
+						monster.yPos = spaceSize + Math.floor((Math.random() * (gameCanvas.height - (spaceSize*2))) / spaceSize) * spaceSize;
+						break;
+				}
+			} while (!emptySpace[monster.xPos/spaceSize][monster.yPos/spaceSize])
+			
+			emptySpace[monster.xPos/spaceSize][monster.yPos/spaceSize] = false;
+			
+			monster.distanceFromPlayer = pointDistance(player.xPos, player.yPos, monster.xPos, monster.yPos);
+			
 			switch (monsterLevel) {
 				case 1:
 					monster.name = "Goblin";
