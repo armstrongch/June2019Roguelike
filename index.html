@@ -80,14 +80,15 @@
 		
 		var emptySpace = [];
 		
-		var numberOfMonsterTypes = 5;
+		var numberOfMonsterTypes = 6;
 		var monsterDesc =
 		{
 			"Goblin": "a run-of-the-mill spooker. Moves toward the player orthogonally one space at a time.",
 			"Zoombini": "moves toward the player orthogonally one space at a time. Every five rounds, the Zoombini's level is reduced by 1 due to decomposition.",
 			"Fiendish Rhinoceros": "moves toward the player orthogonally one space at a time. Will sometimes charge, dealing double damage.",
 			"Spike Pig": "moves toward the player orthogonally one space at a time. Spikes deal 1 damage diagonally.",
-			"Sludge Monster": "moves toward the player orthogonally one space at a time. Leaves behind a trail of toxic goop."
+			"Sludge Monster": "moves toward the player orthogonally one space at a time. Leaves behind a trail of toxic goop.",
+			"Master Goblin": "moves toward the player orthogonally one space at a time. Summons additional goblins."
 		};
 		
 		function lootInfo(lootName, lootType)
@@ -511,6 +512,9 @@
 				case "sludge":
 					objCode = String.fromCodePoint(0x1F4A9);
 					break;
+				case "Master Goblin":
+					objCode = String.fromCodePoint(0x1F479);
+					break;
 				}
 				
 				ctx.fillText(objCode, 
@@ -594,6 +598,16 @@
 						{
 							showMessage("Spike Pig deals 1 spike damage!");
 							player.health--;
+						}
+						else if (obj.name == "Master Goblin")
+						{
+							obj.countdown--;
+							if (obj.countdown <= 0)
+							{
+								obj.countdown = 4;
+								showMessage("Master Goblin calls for reinforcements!");
+								generateMonster(1);
+							}
 						}
 						
 						if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos))
@@ -816,6 +830,7 @@
 					{
 						showMessage(ring.name + " has been depleted.");
 						player.rings.splice(goblinSummoningRingIndex, 1);
+						goblinSummoningRingIndex = getRingIndex("Goblin-Summoning Ring");
 					}
 					showMessage("Goblin-Summoning Ring summons a Goblin.");
 				}
@@ -853,29 +868,29 @@
 			emptySpace[monster.xPos/spaceSize][monster.yPos/spaceSize] = false;
 			
 			monster.distanceFromPlayer = pointDistance(player.xPos, player.yPos, monster.xPos, monster.yPos);
+			monster.monsterLevel = monsterLevel;
 			
 			switch (monsterLevel) {
 				case 1:
 					monster.name = "Goblin";
-					monster.monsterLevel = monsterLevel;
 					break;
 				case 2:
 					monster.name = "Zoombini";
-					monster.monsterLevel = monsterLevel;
 					monster.countdown = 5;
 					break;
 				case 3:
 					monster.name = "Fiendish Rhinoceros";
-					monster.monsterLevel = monsterLevel;
 					monster.state = "none";
 					break;
 				case 4:
 					monster.name = "Spike Pig";
-					monster.monsterLevel = monsterLevel;
 					break;
 				case 5:
 					monster.name = "Sludge Monster";
-					monster.monsterLevel = monsterLevel;
+					break;
+				case 6:
+					monster.name = "Master Goblin";
+					monster.countdown = 4;
 					break;
 			}
 			monster.isMonster = true;
