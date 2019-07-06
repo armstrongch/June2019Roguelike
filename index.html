@@ -14,6 +14,11 @@
 				text-align: center;
 				width: 30%;
 			}
+			table {
+				height: 100%;
+				margin: 0;
+				padding: 0;
+			}
 			.infoTextTD {
 				border: 1px solid black;
 				width: 35%;
@@ -30,24 +35,26 @@
 		<table>
 			<tr>
 				<td valign="top" class="infoBarTD" rowspan="2">
-					<h3>
-						Health:<br/>
-						<span id="playerHealthSpan"></span> / 20<br/>
-					</h3>
-					<h3>
-						Weapon:<br/>
-						<span id="playerWeaponSpan"></span><br/>
-						<i><span id="playerWeaponDesc"></span></i><br/>
-					</h3>
-					<h3>
-						Armor:<br/>
-						<span id="playerArmorSpan"></span><br/>
-						<i><span id="playerArmorDesc"></span></i><br/>
-					</h3>
-					<h3>
-						Rings:<br/>
-						<span id="playerRingSpan"></span><br/>
-					</h3>
+					<div class="commentaryDiv">
+						<h3>
+							Health:<br/>
+							<span id="playerHealthSpan"></span> / 20<br/>
+						</h3>
+						<h3>
+							Weapon:<br/>
+							<span id="playerWeaponSpan"></span><br/>
+							<i><span id="playerWeaponDesc"></span></i><br/>
+						</h3>
+						<h3>
+							Armor:<br/>
+							<span id="playerArmorSpan"></span><br/>
+							<i><span id="playerArmorDesc"></span></i><br/>
+						</h3>
+						<h3>
+							Rings:<br/>
+							<span id="playerRingSpan"></span><br/>
+						</h3>
+					</div>
 				</td>
 				<td colspan="2">
 					<canvas id="gameCanvas" width="0" height="0"></canvas>
@@ -116,7 +123,7 @@
 						text = "Put on " + lootName + " (" + ringDesc[lootName] + ")?";
 						if (confirm(text))
 						{
-							player.rings[player.rings.length] = {name: lootName,charges: 3};
+							player.rings[player.rings.length] = {name: lootName, charges: 3};
 						}
 						break;
 				}
@@ -564,7 +571,7 @@
 					if (!obj.dead)
 					{
 						//Before Moving
-						if ((spaceContains(obj.xPos, obj.yPos, "sludge")) && (obj.monsterLevel > 0))
+						if ((obj.name != "Sludge Monster") && (spaceContains(obj.xPos, obj.yPos, "sludge")) && (obj.monsterLevel > 0))
 						{
 							obj.monsterLevel--;
 							showMessage(obj.name + " is poisoned by toxic goop. Its level is reduced to " + obj.monsterLevel + ".");
