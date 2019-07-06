@@ -301,7 +301,7 @@
 						break;
 				}
 			}
-			else if ((pickLoot) && (k == 32))
+			else if (pickLoot)
 			{
 				$('#lootButton').click();
 			}
@@ -337,6 +337,10 @@
 						clickDown();
 						break;
 				}
+			}
+			else if (pickLoot)
+			{
+				$('#lootButton').click();
 			}
 		}
 		
