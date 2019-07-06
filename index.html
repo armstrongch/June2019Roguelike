@@ -17,9 +17,10 @@
 			.infoTextTD {
 				border: 1px solid black;
 				width: 35%;
+				height: 150px;
 			}
 			.commentaryDiv {
-				height: 150px;
+				height: 100%;
 				overflow: scroll;
 			}
 		</style>
@@ -79,13 +80,14 @@
 		
 		var emptySpace = [];
 		
-		var numberOfMonsterTypes = 4;
+		var numberOfMonsterTypes = 5;
 		var monsterDesc =
 		{
 			"Goblin": "a run-of-the-mill spooker. Moves toward the player orthogonally one space at a time.",
 			"Zoombini": "moves toward the player orthogonally one space at a time. Every five rounds, the Zoombini's level is reduced by 1 due to decomposition.",
 			"Fiendish Rhinoceros": "moves toward the player orthogonally one space at a time. Will sometimes charge, dealing double damage.",
-			"Fiendish Spike Pig": "moves toward the player orthogonally one space at a time. Spikes deal 1 damage diagonally"
+			"Spike Pig": "moves toward the player orthogonally one space at a time. Spikes deal 1 damage diagonally.",
+			"Sludge Monster": "moves toward the player orthogonally one space at a time. Leaves behind a trail of toxic goop."
 		};
 		
 		function lootInfo(lootName, lootType)
@@ -154,24 +156,31 @@
 		var weaponDesc =
 		{
 			"Cattle Prod": "standard melee weapon",
-			"Twin Sword": "killing a monster kills all other monsters of the same species"
+			"Twin Sword": "killing a monster kills all other monsters of the same species",
+			"Vampire Sword": "killing a monster restores 3 health"
 		};
 		
 		var armorDesc =
 		{
 			"Denim Overalls": "standard armor",
-			"Leather Armor": "reduces incoming damage by 1"
+			"Leather Armor": "reduces incoming damage by 1",
+			"Bug-Zapper Suit": "killing a monster reduces the level of orthogonally adjacent monster by 1"
 		};
 		
 		var ringDesc =
 		{
-			"Goblin-Squashing Ring": "reduces damage from goblins to zero"
+			"Goblin-Squashing Ring": "reduces damage from goblins to zero",
+			"Goblin-Summoning Ring": "doubles the chances of goblin attacks"
 		};
 		
 		var lootList = [];
 		lootList[0] = ["Twin Sword", "weapon"];
+		lootList[3] = ["Vampire Sword", "weapon"];
 		lootList[1] = ["Leather Armor", "armor"];
+		lootList[4] = ["Bug-Zapper Suit", "armor"];
 		lootList[2] = ["Goblin-Squashing Ring", "ring"];
+		lootList[5] = ["Goblin-Summoning Ring", "ring"];
+		
 		
 		function roomObject (xPos, yPos, name, stopsPlayerMovement)
 		{
@@ -183,6 +192,7 @@
 			this.monsterLevel = 0;
 			this.causeOfDeath = "Unknown";
 			this.distanceFromPlayer = pointDistance(0, 0, gameCanvas.width, gameCanvas.height);
+			this.dead = false;
 		}
 		var roomObjects =[];
 		
@@ -220,10 +230,10 @@
 			gameCanvas.width = roomWidth;
 			gameCanvas.height = roomHeight;
 			
-			for (i = 0; i < gameCanvas.width/spaceSize; i++)
+			for (let i = 0; i < gameCanvas.width/spaceSize; i++)
 			{
 				var col = [];
-				for (j = 0; j < gameCanvas.height/spaceSize; j++)
+				for (let j = 0; j < gameCanvas.height/spaceSize; j++)
 				{
 					col.push(true);
 				}
@@ -235,26 +245,26 @@
 			
 			playerXPos = 7*spaceSize;
 			playerYPos = 7*spaceSize;
-			for (i = 0; i < gameCanvas.width; i += spaceSize)
+			for (let i = 0; i < gameCanvas.width; i += spaceSize)
 			{
 				roomObjects.push(new roomObject(i, 0, "tree", true));
 				emptySpace[i/spaceSize][0] = false;
 				roomObjects.push(new roomObject(i, gameCanvas.height-spaceSize, "tree", true));
 				emptySpace[i/spaceSize][gameCanvas.height/spaceSize-1] = false;
 			}
-			for (i = spaceSize; i < gameCanvas.height - spaceSize; i += spaceSize)
+			for (let i = spaceSize; i < gameCanvas.height - spaceSize; i += spaceSize)
 			{
 				roomObjects.push(new roomObject(0, i, "tree", true));
 				emptySpace[0][i/spaceSize] = false;
 				roomObjects.push(new roomObject(gameCanvas.width-spaceSize, i, "tree", true));
 				emptySpace[gameCanvas.width/spaceSize - 1][i/spaceSize] = false;
 			}
-			for (i = spaceSize; i < gameCanvas.width - spaceSize; i += spaceSize)
+			for (let i = spaceSize; i < gameCanvas.width - spaceSize; i += spaceSize)
 			{
 				roomObjects.push(new roomObject(i, spaceSize, "grass", false));
 				roomObjects.push(new roomObject(i, gameCanvas.height-(spaceSize*2), "grass", false));
 			}
-			for (i = (spaceSize*2); i < gameCanvas.height - (spaceSize*2); i += spaceSize)
+			for (let i = (spaceSize*2); i < gameCanvas.height - (spaceSize*2); i += spaceSize)
 			{
 				roomObjects.push(new roomObject(spaceSize, i, "grass", false));
 				roomObjects.push(new roomObject(gameCanvas.width-(spaceSize*2), i, "grass", false));
@@ -270,8 +280,7 @@
 				health: 20,
 				weapon: "Cattle Prod",
 				armor: "Denim Overalls",
-				rings: [],
-				dead: false
+				rings: []
 			};
 			
 			drawCanvas();
@@ -407,7 +416,7 @@
 			$('#playerArmorSpan').html(player.armor);
 			$('#playerArmorDesc').html(armorDesc[player.armor]);
 			var ringHtml = "";
-			for (i = 0; i < player.rings.length; i++)
+			for (let i = 0; i < player.rings.length; i++)
 			{
 				var ring = player.rings[i];
 				ringHtml += ring.name +" (" + ring.charges + "):<br/><i>" + ringDesc[ring.name] + "</i><br/><br/>";
@@ -417,12 +426,12 @@
 		
 		function drawBackground()
 		{	
-			for (i = 0; i < gameCanvas.width; i += spaceSize)
+			for (let i = 0; i < gameCanvas.width; i += spaceSize)
 			{
 				ctx.moveTo(0, i);
 				ctx.lineTo(gameCanvas.width, i);
 			}
-			for (i = 0; i < gameCanvas.height; i += spaceSize)
+			for (let i = 0; i < gameCanvas.height; i += spaceSize)
 			{
 				ctx.moveTo(i, 0);
 				ctx.lineTo(i, gameCanvas.width);
@@ -446,6 +455,21 @@
 			}
 		}
 		
+		function spaceContains(x, y, objName)
+		{
+			var spaceContainsObj = false;
+			for (let i = roomObjects.length - 1; i >= 0; i--)
+			{
+				var obj = roomObjects[i];
+				if ((obj.xPos == x) && (obj.yPos == y) && (obj.name == objName))
+				{
+					spaceContainsObj = true;
+					i = -1;
+				}
+			}
+			return spaceContainsObj;
+		}
+		
 		function drawRoomObjects()
 		{
 			player.canMoveUp = true;
@@ -457,7 +481,7 @@
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
 			
-			for (i = roomObjects.length - 1; i >= 0; i--)
+			for (let i = roomObjects.length - 1; i >= 0; i--)
 			{
 				var obj = roomObjects[i];
 				var objCode;
@@ -478,8 +502,14 @@
 				case "Fiendish Rhinoceros":
 					objCode = String.fromCodePoint(0x1F98F);
 					break;
-				case "Fiendish Spike Pig":
+				case "Spike Pig":
 					objCode = String.fromCodePoint(0x1F994);
+					break;
+				case "Sludge Monster":
+					objCode = String.fromCodePoint(0x1F92E);
+					break;
+				case "sludge":
+					objCode = String.fromCodePoint(0x1F4A9);
 					break;
 				}
 				
@@ -511,11 +541,17 @@
 		
 		function enemyTurn()
 		{
+			if (spaceContains(player.xPos, player.yPos, "sludge"))
+			{
+				showMessage("Toxic goop deals 1 damage.");
+				player.health--;
+			}
+			
 			var numberOfMonsters = 0;
 			
 			roomObjects.sort(dynamicSort("-distanceFromPlayer"));
 			
-			for (i = roomObjects.length - 1; i >= 0; i--)
+			for (let i = roomObjects.length - 1; i >= 0; i--)
 			{
 				var obj = roomObjects[i];
 				if (obj.isMonster)
@@ -524,6 +560,12 @@
 					if (!obj.dead)
 					{
 						//Before Moving
+						if ((spaceContains(obj.xPos, obj.yPos, "sludge")) && (obj.monsterLevel > 0))
+						{
+							obj.monsterLevel--;
+							showMessage(obj.name + " is poisoned by toxic goop. Its level is reduced to " + obj.monsterLevel + ".");
+						}
+						
 						if (obj.name == "Fiendish Rhinoceros") 
 						{
 							if ((obj.xPos == player.xPos) || (obj.yPos == player.yPos))
@@ -546,18 +588,19 @@
 								obj.state = "none";
 							}
 						}
-						else if ((obj.name == "Fiendish Spike Pig") 
+						else if ((obj.name == "Spike Pig") 
 							&& (Math.abs(player.xPos - obj.xPos) == spaceSize)
 							&& (Math.abs(player.yPos - obj.yPos) == spaceSize))
 						{
-							showMessage("Fiendish Spike Pig deals 1 spike damage!");
+							showMessage("Spike Pig deals 1 spike damage!");
 							player.health--;
 						}
+						
 						if ((player.xPos == obj.xPos) && (player.yPos == obj.yPos))
 						{
 							fightMonster(obj, i);
 						}
-						if ((obj.name == "Zoombini") && (obj.monsterLevel > 0))
+						else if ((obj.name == "Zoombini") && (obj.monsterLevel > 0))
 						{
 							obj.countdown--;
 							if (obj.countdown == 0)
@@ -569,37 +612,58 @@
 						}
 						
 						//Moving
-						if (obj.xPos == player.xPos) 
+						if (obj.dead == false)
 						{
-							var yModifier = player.yPos  > obj.yPos ? 1 : -1;
-							
-							if (emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize + yModifier])
+							if (obj.xPos == player.xPos) 
 							{
-								emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = true;
-								obj.yPos += yModifier * spaceSize;
-								emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = false;
+								var yModifier = player.yPos  > obj.yPos ? 1 : -1;
+								
+								if (emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize + yModifier])
+								{
+									if (obj.name == "Sludge Monster")
+									{
+										var sludge = new roomObject(obj.xPos, obj.yPos, "sludge", false);
+										sludge.countdown = 8;
+										roomObjects.push(sludge);
+									}
+									emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = true;
+									obj.yPos += yModifier * spaceSize;
+									emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = false;
+								}
 							}
-						}
-						else if ((obj.yPos == player.yPos) || (Math.random() > 0.5))
-						{
-							var xModifier = player.xPos  > obj.xPos ? 1 : -1;
-							
-							if (emptySpace[obj.xPos/spaceSize + xModifier][obj.yPos/spaceSize])
+							else if ((obj.yPos == player.yPos) || (Math.random() > 0.5))
 							{
-								emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = true;
-								obj.xPos += xModifier * spaceSize;
-								emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = false;
+								var xModifier = player.xPos  > obj.xPos ? 1 : -1;
+								
+								if (emptySpace[obj.xPos/spaceSize + xModifier][obj.yPos/spaceSize])
+								{
+									if (obj.name == "Sludge Monster")
+									{
+										var sludge = new roomObject(obj.xPos, obj.yPos, "sludge", false);
+										sludge.countdown = 8;
+										roomObjects.push(sludge);
+									}
+									emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = true;
+									obj.xPos += xModifier * spaceSize;
+									emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = false;
+								}
 							}
-						}
-						else
-						{
-							var yModifier = player.yPos  > obj.yPos ? 1 : -1;
-							
-							if (emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize + yModifier])
+							else
 							{
-								emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = true;
-								obj.yPos += yModifier * spaceSize;
-								emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = false;
+								var yModifier = player.yPos  > obj.yPos ? 1 : -1;
+								
+								if (emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize + yModifier])
+								{
+									if (obj.name == "Sludge Monster")
+									{
+										var sludge = new roomObject(obj.xPos, obj.yPos, "sludge", false);
+										sludge.countdown = 8;
+										roomObjects.push(sludge);
+									}
+									emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = true;
+									obj.yPos += yModifier * spaceSize;
+									emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = false;
+								}
 							}
 						}
 						
@@ -616,6 +680,14 @@
 					else
 					{
 						showMessage(obj.name + " is defeated. Cause of death: " + obj.causeOfDeath);
+						killMonster(i, obj.xPos, obj.yPos);
+					}
+				}
+				else if (obj.name == "sludge")
+				{
+					obj.countdown--;
+					if (obj.countdown <= 0)
+					{
 						roomObjects.splice(i, 1);
 					}
 				}
@@ -632,6 +704,12 @@
 			}
 		}
 		
+		function killMonster(monsterIndex, xPos, yPos)
+		{
+			roomObjects.splice(monsterIndex, 1);
+			emptySpace[xPos/spaceSize][yPos/spaceSize] = true;
+		}
+		
 		function fightMonster(obj, index)
 		{
 			var damage = obj.monsterLevel;
@@ -646,7 +724,21 @@
 			{
 				damage--;	
 			}
-			for (j = player.rings.length - 1; j >= 0; j--)
+			else if (player.armor == "Bug-Zapper Suit")
+			{
+				for (let k = 0; k < roomObjects.length; k++)
+				{
+					var o = roomObjects[k];
+					if ((o.isMonster) && (!o.dead) 
+						&& (o.monsterLevel > 0) 
+						&& (pointDistance(o.xPos, o.yPos, obj.xPos, obj.yPos) == spaceSize))
+					{
+						o.monsterLevel--;
+						showMessage(o.name + " is zapped by the Bug-Zapper Suit, and is reduced to level " + o.monsterLevel + ".");
+					}
+				}
+			}
+			for (let j = player.rings.length - 1; j >= 0; j--)
 			{
 				var ring = player.rings[j];
 				if ((ring.name == "Goblin-Squashing Ring") && (obj.name == "Goblin") && (damage > 0))
@@ -662,7 +754,7 @@
 			}
 			if (player.weapon == "Twin Sword")
 			{
-				for (k = 0; k < roomObjects.length; k++)
+				for (let k = 0; k < roomObjects.length; k++)
 				{
 					var o = roomObjects[k];
 					if ((o.isMonster) && (!o.dead) && (o.name == obj.name))
@@ -672,13 +764,34 @@
 					}
 				}
 			}
+			else if (player.weapon == "Vampire Sword")
+			{
+				player.health += 3;
+				showMessage("Vampire Sword restores 3 health.");
+			}
 			player.health -= damage;
 			showMessage(obj.name + " deals " + damage + " damage.");
 			obj.dead = true;
 			showMessage(obj.name + " is defeated.");
-			emptySpace[obj.xPos/spaceSize][obj.yPos/spaceSize] = true;
-			roomObjects.splice(index, 1);
+			killMonster(index, obj.xPos, obj.yPos);
 			createLoot(obj.name);
+		}
+		
+		//if the player is wearing a ring of a certain type, return the index
+		//if the player is NOT wearing that type of ring, return -1
+		function getRingIndex(ringName)
+		{
+			var ringIndex = -1;
+			for (let j = player.rings.length - 1; j >= 0; j--)
+			{
+				var ring = player.rings[j];
+				if ((ring.name == ringName))
+				{
+					ringIndex = j;
+					j = -1;
+				}
+			}
+			return ringIndex;
 		}
 		
 		function generateMonsters()
@@ -686,6 +799,7 @@
 			monsterWaveNumber++;
 			var monstersToGenerate = monsterWaveNumber;
 			var randomInt = monstersToGenerate;
+			var goblinSummoningRingIndex = getRingIndex("Goblin-Summoning Ring");
 			while (monstersToGenerate > 0)
 			{
 				if (monstersToGenerate > numberOfMonsterTypes)
@@ -693,6 +807,18 @@
 					randomInt = numberOfMonsterTypes;
 				}
 				monsterLevel = Math.ceil(randomInt*Math.random());
+				if ((goblinSummoningRingIndex != -1) && (Math.random() > 0.5))
+				{
+					monsterLevel = 1;
+					var ring = player.rings[goblinSummoningRingIndex];
+					ring.charges--;
+					if (ring.charges == 0)
+					{
+						showMessage(ring.name + " has been depleted.");
+						player.rings.splice(goblinSummoningRingIndex, 1);
+					}
+					showMessage("Goblin-Summoning Ring summons a Goblin.");
+				}
 				generateMonster(monsterLevel);
 				monstersToGenerate -= monsterLevel;
 			}
@@ -744,7 +870,11 @@
 					monster.state = "none";
 					break;
 				case 4:
-					monster.name = "Fiendish Spike Pig";
+					monster.name = "Spike Pig";
+					monster.monsterLevel = monsterLevel;
+					break;
+				case 5:
+					monster.name = "Sludge Monster";
 					monster.monsterLevel = monsterLevel;
 					break;
 			}
